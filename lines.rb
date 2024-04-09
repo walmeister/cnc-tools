@@ -25,7 +25,7 @@ RVG::dpi = 72
 radius = 10 * 15/2.0 # mm approximately !!! change 1 to 10 to view zoomed in
 crown_height = 2.5 # mm
 hub_height = 6.25 # mm
-teeth = 36
+teeth = 36 / 2
 
 # gcode settings
 offset = 13 # mm
