@@ -21,24 +21,28 @@ end
 
 RVG::dpi = 72
 
-def cut_circular_pocket(canvas, zoom, gcode, cx, cy, r1, r2, overlap_factor, tool_radius, depth, depth_of_cut)
+def cut_circular_pocket(canvas, zoom, gcode, cx, cy, r1, r2, stepover_factor, tool_diam, depth, depth_of_cut)
   # calculate the number of cuts
-  r1_start = r1 + 0.5 * tool_radius
-  r2_start = r2 - 0.5 * tool_radius
-  width_of_cut = r2_start - r1_start
-  step_over_distance = tool_radius * (1.0 - overlap_factor)
-  num_cuts = width_of_cut / tool_radius * step_over_distance
+  r1_start = r1 + 0.5 * tool_diam * zoom
+  r2_end = r2 - 0.5 * tool_diam * zoom
+  width_of_cut = r2 - r1 #r2 - r1_start # r2_end - r1_start
+  step_over_distance = tool_diam * zoom * stepover_factor
+  num_cuts = width_of_cut / step_over_distance
   puts "num_cuts: #{num_cuts}"
   num_cuts = num_cuts.to_i
   puts "num_cuts: #{num_cuts}"
   radius = r1_start
   num_cuts.times do |i|
+    if radius > r2_end
+      puts "radius: #{radius} > r2_end: #{r2_end}"
+      break
+    end
     canvas.circle(radius, cx, cy).styles(:stroke=>'green', fill: 'none')
     # TODO gcode
     radius += step_over_distance
   end
   # last circle at correct radius
-  canvas.circle(r2_start, cx, cy).styles(:stroke=>'yellow', fill: 'none')
+  canvas.circle(r2_end, cx, cy).styles(:stroke=>'yellow', fill: 'none')
   # TODO gcode
 end
 
@@ -47,7 +51,6 @@ zoom = 10.0  # !!! change 1 to 10 to view zoomed in
 gear_radius = zoom * 15.2 / 2.0 # Outer radius in mm
 gear_width = zoom * 1.0 # mm - original was only 0.7mm
 gear_radius_innner = gear_radius - gear_width # Inner radius in mm
-radius = (gear_radius + gear_radius_innner) / 2  # average
 crown_height = 2.5 # mm
 gear_base_height = 1.5 # mm
 hub_height = 6.25 # mm
@@ -56,8 +59,8 @@ hub_radius_inner = zoom * 1.0 / 2 # mm
 teeth = 36 / 1 # number of teeth 36: for gear
 
 # cnc settings
-tool_radius = zoom * 1.5 # mm
-stepover_factor = 0.85
+tool_diam = 1 # mm  - diameter of the cutting tool - NO ZOOM HERE!
+stepover_factor = 0.80 # 1 is no overlap, 0.5 is 50% overlap
 depth = hub_height - gear_base_height
 depth_of_cut = 0.25  # mm - depth of cut per pass
 
@@ -92,8 +95,8 @@ rvg = RVG.new(width.mm, width.mm).viewbox(0, 0, 200, 200) do |canvas|
   gcode << "G1 F60" # set feed rate to 60mm/min, thus 1mm/s
 
   # cut inner pocket
-  cut_circular_pocket(canvas, zoom, gcode, cx, cy, hub_radius, r1, stepover_factor, tool_radius, depth, depth_of_cut)
-  #cut_circular_pocket(canvas, zoom, gcode, cx, cy, r2, r2 + zoom*5, stepover_factor, tool_radius, depth, depth_of_cut)
+  cut_circular_pocket(canvas, zoom, gcode, cx, cy, hub_radius, gear_radius_innner, stepover_factor, tool_diam, depth, depth_of_cut)
+  cut_circular_pocket(canvas, zoom, gcode, cx, cy, gear_radius, gear_radius + zoom*4, stepover_factor, tool_diam, depth, depth_of_cut) # 4mm extra outside
 
   canvas.g.translate(cx, cy) do |body|
     body.styles(:stroke=>'red', :stroke_width=>1)
