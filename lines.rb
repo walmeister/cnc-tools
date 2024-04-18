@@ -11,7 +11,7 @@ include Magick
 # - Do the gcode and worry about visualizing later
 
 # TODO:
-# Add z positions to the gcode, annd number of cuts
+# Add z positions to the gcode, and number of cuts
 # - Add a way to visualize the cutter movements from the gcode
 # - Add operations to mill the hub and crown, then the teeth
 
@@ -25,7 +25,7 @@ RVG::dpi = 72
 radius = 10 * 15/2.0 # mm approximately !!! change 1 to 10 to view zoomed in
 crown_height = 2.5 # mm
 hub_height = 6.25 # mm
-teeth = 36 / 2
+teeth = 36 / 1 # number of teeth 36: for gear
 
 # gcode settings
 offset = 13 # mm
@@ -38,6 +38,7 @@ r2 = radius + offset # outer radius
 start = [r1, 0]
 prev = start
 
+# define printer dimensions and center
 width = 200
 cx, cy = width / 2, width / 2
 
@@ -78,6 +79,7 @@ rvg = RVG.new(width.mm, width.mm).viewbox(0, 0, 200, 200) do |canvas|
       #puts *p1, *p2
     end
     # move z up
+    gcode << "G1 Z#{z_start} F1000" # move to z_start
   end
 end
 
