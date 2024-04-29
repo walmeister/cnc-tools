@@ -38,12 +38,17 @@ def cut_circular_pocket(canvas, zoom, gcode, cx, cy, r1, r2, stepover_factor, to
       break
     end
     canvas.circle(radius, cx, cy).styles(:stroke=>'green', fill: 'none')
-    # TODO gcode
+    # gcode
+    gcode << "G1 X#{(cx + radius).round(3)} Y#{(cy).round(3)}" # move to start
+    gcode << "G3 I#{-(radius).round(3)} J0" # complete counter clockwise circle
+
     radius += step_over_distance
   end
   # last circle at correct radius
   canvas.circle(r2_end, cx, cy).styles(:stroke=>'yellow', fill: 'none')
-  # TODO gcode
+  # gcode
+  gcode << "G1 X#{(cx + r2_end).round(3)} Y#{(cy).round(3)}" # move to start
+  gcode << "G3 I#{-(r2_end).round(3)} J0" # complete counter clockwise circle
 end
 
 # define the gear
@@ -80,6 +85,7 @@ width = 200
 cx, cy = width / 2, width / 2
 
 gcode = ['G21; mm units']
+gcode << "G90; absolute positioning"
 gcode << "G1 Z#{z_start} F1000" # move to z_start
 gcode << "G1 X#{start[0] + cx} Y#{start[1] + cy} F1000" # move to start
 
@@ -94,7 +100,7 @@ rvg = RVG.new(width.mm, width.mm).viewbox(0, 0, 200, 200) do |canvas|
   #set feed rate
   gcode << "G1 F60" # set feed rate to 60mm/min, thus 1mm/s
 
-  # cut inner pocket
+  # cut inner, then outer pocket
   cut_circular_pocket(canvas, zoom, gcode, cx, cy, hub_radius, gear_radius_innner, stepover_factor, tool_diam, depth, depth_of_cut)
   cut_circular_pocket(canvas, zoom, gcode, cx, cy, gear_radius, gear_radius + zoom*4, stepover_factor, tool_diam, depth, depth_of_cut) # 4mm extra outside
 
