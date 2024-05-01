@@ -52,7 +52,7 @@ def cut_circular_pocket(canvas, zoom, gcode, cx, cy, r1, r2, stepover_factor, to
 end
 
 # define the gear
-zoom = 10.0  # !!! change 1 to 10 to view zoomed in
+zoom = 1.0  # !!! change 1 to 10 to view zoomed in !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 gear_radius = zoom * 15.2 / 2.0 # Outer radius in mm
 gear_width = zoom * 1.0 # mm - original was only 0.7mm
 gear_radius_innner = gear_radius - gear_width # Inner radius in mm
@@ -86,6 +86,7 @@ cx, cy = width / 2, width / 2
 
 gcode = ['G21; mm units']
 gcode << "G90; absolute positioning"
+gcode << "G28; Home all axes"
 gcode << "G1 Z#{z_start} F1000" # move to z_start
 gcode << "G1 X#{start[0] + cx} Y#{start[1] + cy} F1000" # move to start
 
@@ -98,7 +99,7 @@ rvg = RVG.new(width.mm, width.mm).viewbox(0, 0, 200, 200) do |canvas|
   canvas.circle(gear_radius_innner, cx, cy).styles(:stroke=>'blue', fill: 'none')
 
   #set feed rate
-  gcode << "G1 F60" # set feed rate to 60mm/min, thus 1mm/s
+  gcode << "G1 F600" # set feed rate to 60mm/min, thus 1mm/s
 
   # cut inner, then outer pocket
   cut_circular_pocket(canvas, zoom, gcode, cx, cy, hub_radius, gear_radius_innner, stepover_factor, tool_diam, depth, depth_of_cut)
@@ -134,3 +135,7 @@ end
 rvg.draw.write('lines.png')
 
 IO.write("cuts.gcode", gcode.join("\n"))
+# view in https://ncviewer.com/
+# or quick n dirty: https://nraynaud.github.io/webgcode/ - no circles
+# or this 12 yr old one: https://gcode.ws/
+# https://zupfe.velor.ca/ - cool animation when clicking on 3d Printed line
